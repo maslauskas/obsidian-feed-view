@@ -1,0 +1,4 @@
+- order notes by date desc
+- add tags at the bottom
+- add timestamp
+- open full note on click

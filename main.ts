@@ -72,7 +72,7 @@ class MyCustomView extends ItemView {
 
 		for (const note of notesWithTag) {
 			const noteContent = await this.app.vault.read(note);
-			const preview = noteContent.slice(0, 100); // Adjust for desired preview length
+			const preview = noteContent.slice(0, 300); // Adjust for desired preview length
 
 			const cardEl = this.contentEl.createEl('div');
 			cardEl.classList.add('note-card');
