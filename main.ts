@@ -32,8 +32,30 @@ class MyCustomView extends ItemView {
 	}
 
 	async onOpen() {
-		// This method is called when your view is opened.
-		// You can initialize your view content here.
-		this.contentEl.setText("Hello from My Custom View!");
+		const allFiles = this.app.vault.getMarkdownFiles();
+		const tagSet = new Set<string>();
+
+		allFiles.forEach(file => {
+			const metadata = this.app.metadataCache.getFileCache(file);
+			if (metadata && metadata.tags) {
+				metadata.tags.forEach(tag => {
+					if (typeof tag === 'string') {
+						tagSet.add(tag);
+					} else if (tag.tag) {
+						tagSet.add(tag.tag);
+					}
+				});
+			}
+		});
+
+		const allTags = Array.from(tagSet);
+
+		const selectEl = this.contentEl.createEl('select');
+
+		allTags.forEach(tag => {
+			const optionEl = selectEl.createEl('option', { text: tag });
+			optionEl.value = tag;
+		});
 	}
+
 }
