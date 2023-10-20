@@ -74,19 +74,31 @@ class MyCustomView extends ItemView {
 			const noteContent = await this.app.vault.read(note);
 			const preview = noteContent.slice(0, 100); // Adjust for desired preview length
 
-			this.contentEl.createEl('div', {
-				text: preview,
-				attr: {
-					style: `
-                background-color: #f9f9f9;  /* Light background */
-                border-radius: 5px;        /* Rounded border */
-                padding: 10px;             /* Padding inside the card */
-                margin-bottom: 10px;       /* Gap between cards */
-                margin-top: 10px;       /* Gap between cards */
-                border: 1px solid #e0e0e0; /* Optional border */
-            `
+			const cardEl = this.contentEl.createEl('div');
+			cardEl.classList.add('note-card');
+
+			const metadata = this.app.metadataCache.getFileCache(note);
+			const creationTime = metadata?.frontmatter?.created;
+
+			if (creationTime) {
+				cardEl.createEl('div', { text: `Created: ${creationTime}` });
+			}
+
+			cardEl.createEl('div', { text: preview });
+
+			const imageRegex = /!\[\[([^\]]+)\]\]/g;
+			let match;
+			while ((match = imageRegex.exec(noteContent)) !== null) {
+				const imageName = match[1];
+				console.log(imageName)
+				const imageFile = this.app.vault.getAbstractFileByPath(imageName) as TFile;
+				if (imageFile) {
+					const imageUrl = this.app.vault.getResourcePath(imageFile);
+					cardEl.createEl('img', {
+						attr: { src: imageUrl, alt: 'Image from note', width: '100px' } // Adjust width as needed
+					});
 				}
-			});
+			}
 		}
 	}
 
