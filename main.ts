@@ -1,4 +1,4 @@
-import { ItemView, WorkspaceLeaf } from 'obsidian';
+import {ItemView, TFile, WorkspaceLeaf} from 'obsidian';
 import { Plugin } from 'obsidian';
 
 export default class MyCustomViewPlugin extends Plugin {
@@ -56,6 +56,55 @@ class MyCustomView extends ItemView {
 			const optionEl = selectEl.createEl('option', { text: tag });
 			optionEl.value = tag;
 		});
+
+		selectEl.addEventListener('change', (event) => {
+			const selectedTag = (event.target as HTMLSelectElement).value;
+			this.displayNotesWithSelectedTag(selectedTag, selectEl);
+		});
+	}
+
+	async displayNotesWithSelectedTag(tag: string, selectEl: HTMLSelectElement) {
+		const notesWithTag = await this.getFilesWithTag(tag);
+
+		// Clear previous results
+		this.contentEl.empty();
+		this.contentEl.appendChild(selectEl); // Re-append the selector
+
+		for (const note of notesWithTag) {
+			const noteContent = await this.app.vault.read(note);
+			const preview = noteContent.slice(0, 100); // Adjust for desired preview length
+
+			this.contentEl.createEl('div', {
+				text: preview,
+				attr: {
+					style: `
+                background-color: #f9f9f9;  /* Light background */
+                border-radius: 5px;        /* Rounded border */
+                padding: 10px;             /* Padding inside the card */
+                margin-bottom: 10px;       /* Gap between cards */
+                margin-top: 10px;       /* Gap between cards */
+                border: 1px solid #e0e0e0; /* Optional border */
+            `
+				}
+			});
+		}
+	}
+
+	async getFilesWithTag(tag: string): Promise<TFile[]> {
+		const allFiles = this.app.vault.getMarkdownFiles();
+		const filesWithTag: TFile[] = [];
+
+		allFiles.forEach(file => {
+			const metadata = this.app.metadataCache.getFileCache(file);
+			if (metadata && metadata.tags) {
+				const tags = metadata.tags.map(t => (typeof t === 'string' ? t : t.tag));
+				if (tags.includes(tag)) {
+					filesWithTag.push(file);
+				}
+			}
+		});
+
+		return filesWithTag;
 	}
 
 }
